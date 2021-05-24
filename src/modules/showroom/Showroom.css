@@ -1,0 +1,9 @@
+.showroomMain{
+    background-color: black;
+    width: 99%;
+    height: 99.6%;
+    display: grid;
+    place-items: center;
+    flex: 0.7;
+    border-radius: 5px;
+}
