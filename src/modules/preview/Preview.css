@@ -38,4 +38,13 @@
     bottom: 2%;
     left: 2%;
 }
-
+.playAnim{
+    position: fixed;
+    bottom: 2%;
+    left: 90%;
+}
+.switchView{
+    position: fixed;
+    bottom: 2%;
+    left: 40%;
+}

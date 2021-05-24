@@ -22,6 +22,24 @@ const AddGLB = ({callBack}) =>{
     );
 }
 
+const SwitchView = ({callBack}) =>{
+    const click = function (){
+        callBack();
+    }
+    return (
+        <button onClick={click}>Switch View</button>
+    );
+}
+
+const PlayAnim = ({callBack}) =>{
+    const click = function (){
+        callBack();
+    }
+    return (
+        <button onClick={click}>Play Anim</button>
+    );
+}
+
 function Preview() {
     let scene = null;
     const [isLoadingFile, setIsLoadingFile] = useState(true);
@@ -29,14 +47,16 @@ function Preview() {
     const [isLoadingModel, setIsLoadingModel] = useState(false);
     const [isShowPopup, setIsShowPopup] = useState(false);
     const [contentPopup, setContentPopup] = useState(null);
+    const [isHaveAnim, setIsHaveAnim] = useState(false);
     const setFloor = function (img) {
         scene.setTextureFloor(img);
     };
     const setHdr = function (img) {
         scene.setBackGround(img);
     };
-    const setLoading = function (loading) {
+    const setLoading = function (loading, isHaveAnim) {
         console.log("Set loading: " + loading);
+        setIsHaveAnim(isHaveAnim);
         if (loading) {
             setTimeout(() => {
                 setIsLoadingModel(loading);
@@ -49,6 +69,10 @@ function Preview() {
             setIsLoadModelDone(loading);
         }
     };
+    const playAnim = function (){
+        console.log("Play anim");
+        scene.playClips();
+    }
     const showPopup = function (content) {
         console.log(content);
         setContentPopup(content);
@@ -70,6 +94,10 @@ function Preview() {
             });
         setIsLoadingFile(true);
     }
+
+    const switchView = function (){
+        scene.viewFirstPersonControls();
+    }
     return (
         <div className="preview">
       <span className="ButtonNav">
@@ -83,7 +111,16 @@ function Preview() {
             <div className="addModel">
                 <AddGLB callBack={setIsLoadingFile}/>
             </div>
-
+            <div className="switchView">
+                <SwitchView callBack={switchView}/>
+            </div>
+            {isHaveAnim ? (
+                <div className="playAnim">
+                    <PlayAnim callBack={playAnim}/>
+                </div>
+            ) : (
+                <div></div>
+            )}
             <Showroom
                 ref={(instance) => {
                     scene = instance;

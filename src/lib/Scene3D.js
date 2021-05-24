@@ -45,18 +45,18 @@ class Scene3D extends React.Component {
     }
 
     onClick(event) {
-        console.log("Click");
+        //console.log("Click");
     }
 
     onMouseDown(event) {
-        console.log("Mouse Down");
+        //console.log("Mouse Down");
     }
 
     onMouseMove(event) {
     }
 
     onMouseUp(event) {
-        console.log("Mouse up");
+        //console.log("Mouse up");
     }
 
     loadOBJ(path, material) {
@@ -124,7 +124,7 @@ class Scene3D extends React.Component {
                 function (gltf) {
                     const sceneG = gltf.scene || gltf.scenes[0];
                     const clipsG = gltf.animations || [];
-                    console.log(sceneG);
+                    //console.log(sceneG);
                     //
                     if (!sceneG) {
                         // Valid, but not supported by this viewer.
@@ -135,7 +135,8 @@ class Scene3D extends React.Component {
                     }
                     self.setContent(sceneG, clipsG);
                     blobURLs.forEach(URL.revokeObjectURL);
-                    self.props.doneCallBack(true);
+                    if (clipsG.length > 0) self.props.doneCallBack(true, true);
+                    else self.props.doneCallBack(true, false);
                     res(gltf);
                 }, undefined, rej);
         });
@@ -146,9 +147,11 @@ class Scene3D extends React.Component {
         const size = box.getSize(new THREE.Vector3()).length();
         const center = box.getCenter(new THREE.Vector3());
         this.model.push(object);
+        this.content = object;
         object.scale.set(100 / size, 100 / size, 100 / size);
-        object.position.y = this.plane.position.y + (box["max"].y - box["min"].y)/2 *(100 /size);
-        object.position.z = -50;
+        object.position.y = this.plane.position.y + (box["max"].y - center.y) *(100 /size) - 1;
+        object.position.z = 0;
+        object.defaultScale = object.scale.copy();
         const centerX = object.position.x;
         this.scene.add(object);
         var centerModel = Math.floor(this.model.length / 2);
@@ -170,6 +173,33 @@ class Scene3D extends React.Component {
             }
         });
         //set clips
+        this.setClips(clips);
+    }
+
+    setClips ( clips ) {
+        if (this.mixer) {
+            this.mixer.stopAllAction();
+            this.mixer.uncacheRoot(this.mixer.getRoot());
+            this.mixer = null;
+        }
+        this.clips = clips;
+        if (!clips.length) return;
+        this.mixer = new THREE.AnimationMixer( this.content );
+    }
+    playClips () {
+        if (!this.clips || this.clips.length < 1) return;
+        if (this.isPlaying){
+            this.isPlaying = false;
+            this.mixer.stopAllAction();
+            this.mixer.uncacheRoot(this.mixer.getRoot());
+            this.mixer = undefined;
+            return;
+        }
+        this.mixer = new THREE.AnimationMixer( this.content );
+        this.clips.forEach((clip) => {
+            this.mixer.clipAction(clip).reset().play();
+        });
+        this.isPlaying = true;
     }
 
     initCamera() {
@@ -303,6 +333,7 @@ class Scene3D extends React.Component {
         this.actionFrame(delta);
         this.renderScene();
         this.stats.update();
+        if (this.isPlaying) this.mixer.update(delta);
 
     };
     renderScene = () => {
